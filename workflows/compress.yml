@@ -4,4 +4,4 @@ jobs:
   compress-file:
     runs-on: windows-latest
     steps:
-      - run: Compress-Archive -CompressionLevel Fastest -Path C:\Spektra_Docs\TestManagedApp\Test-zip\* -DestinationPath StorOne.zip -Force
+      - run: Compress-Archive -CompressionLevel Fastest -Path https://github.com/Suraj2093/TestStorOne-ManagedApp/blob/main/createUiDefinition.json, https://github.com/Suraj2093/TestStorOne-ManagedApp/blob/main/mainTemplate.json -DestinationPath https://github.com/Suraj2093/TestStorOne-ManagedApp/blob/main/StorOne.zip -Force
