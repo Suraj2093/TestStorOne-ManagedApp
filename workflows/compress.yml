@@ -1,0 +1,7 @@
+name: file-packaging
+on: [push]
+jobs:
+  compress-file:
+    runs-on: windows-latest
+    steps:
+      - run: Compress-Archive -CompressionLevel Fastest -Path C:\Spektra_Docs\TestManagedApp\Test-zip\* -DestinationPath StorOne.zip -Force
