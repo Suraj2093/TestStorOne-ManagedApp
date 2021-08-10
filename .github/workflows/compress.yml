@@ -26,5 +26,5 @@ jobs:
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne.zip"
-        tag: "zip"
+        artifacts: "StorOne1.zip"
+        tag: "ziper"
