@@ -21,7 +21,7 @@ jobs:
       with:
         type: 'zip'
         filename: 'StorOne1.zip'
-        exclusions: 'README.md'
+        exclusions: '*.git* /*node_modules/* .editorconfig, README.md'
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
