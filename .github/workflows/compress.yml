@@ -20,11 +20,11 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        filename: 'StorOne1.zip'
+        filename: 'StorOne2.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig, README.md'
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne1.zip"
-        tag: "ziper1"
+        artifacts: "StorOne2.zip"
+        tag: "ziper2"
