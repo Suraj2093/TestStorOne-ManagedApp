@@ -674,7 +674,7 @@
         },
         "diskSizeGB": "[variables('intadditionalUltraDataDiskSize')]",
         "diskIOPSReadWrite": "[variables('diskIOPSReadWrite')]",
-        "diskMBpsReadWrite": "[if(lessOrEquals(variables('intadditionalUltraDataDiskSize'), 8192), 60, 150)]"
+        "diskMBpsReadWrite": "[if(lessOrEquals(variables('intadditionalUltraDataDiskSize'), 8192), 50, 150)]"
       }
     }
   ],
