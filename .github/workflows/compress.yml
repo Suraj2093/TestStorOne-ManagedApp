@@ -20,13 +20,12 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        filename: 'StorOne14.zip'
-        exclusions: './Test-zip'
-        path: './Test-zip/*'
+        filename: 'StorOne15.zip'
+        directory: './Test-zip/'
         
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne14.zip"
-        tag: "zipper14"
+        artifacts: "StorOne15.zip"
+        tag: "zipper15"
