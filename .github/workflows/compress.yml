@@ -22,9 +22,3 @@ jobs:
         type: 'zip'
         filename: 'StorOne10.zip'
         path: './Test-zip/*'
-        
-    - name: Upload Release
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "StorOne10.zip"
-        tag: "zipper10"
