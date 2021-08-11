@@ -20,12 +20,12 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        filename: 'StorOne17.zip'
+        filename: 'StorOne18.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig, README.md'
         
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne17.zip"
+        artifacts: "StorOne18.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
