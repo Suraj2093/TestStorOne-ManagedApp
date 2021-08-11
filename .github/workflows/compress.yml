@@ -20,12 +20,12 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        filename: 'StorOne8.zip'
-        path: './Test-zip/*'
-        exclusions: '*.git* /*node_modules/* .editorconfig, README.md, ./Test-zip'
+        filename: 'StorOne9.zip'
+        path: './Test-zip/createUiDefinition.json, ./Test-zip/mainTemplate.json'
+        exclusions: '*.git* /*node_modules/* .editorconfig, README.md'
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne8.zip"
-        tag: "zipper8"
+        artifacts: "StorOne9.zip"
+        tag: "zipper9"
