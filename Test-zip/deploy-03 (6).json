@@ -1,0 +1,308 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "servicePrincipalAppID": {
+      "metadata": {
+        "description": "App ID of the Service Principal"
+      },
+      "type": "string"
+    },
+
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "pergb2018",
+        "Free",
+        "Standalone",
+        "PerNode",
+        "Standard",
+        "Premium"
+      ],
+      "defaultValue": "pergb2018",
+      "metadata": {
+        "description": "Pricing tier: PerGB2018 or legacy tiers (Free, Standalone, PerNode, Standard or Premium) which are not available to all customers."
+      }
+    },
+    "servicePrincipalSecret": {
+      "metadata": {
+        "description": "Secret of the Service Principal"
+      },
+      "type": "securestring"
+    },
+
+    "DeploymentID": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "virtualNetworks_vNet_name": "vNet",
+    "logname": "[concat('loganalytics-',parameters('DeploymentID'))]",
+    "azureFirewalls_Firewall_name": "Firewall",
+    "routeTables_Route_table_name": "Route-table",
+    "publicIPAddresses_AzureFirewallPIP_name": "AzureFirewallPIP",
+    "managedClusters_aks_service_name": "aks-service",
+    "resourceGroup": "[resourceGroup().name]",
+    "location": "[resourceGroup().location]",
+    "dockerBridgeCidr": "172.17.0.1/16",
+    "dnsServiceIP": "10.0.0.10",
+    "serviceCidr": "10.0.0.0/16"
+
+
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('publicIPAddresses_AzureFirewallPIP_name')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Standard",
+        "tier": "Regional"
+      },
+      "zones": [
+        "1",
+        "2",
+        "3"
+      ],
+      "properties": {
+        "ipAddress": "20.82.17.134",
+        "publicIPAddressVersion": "IPv4",
+        "publicIPAllocationMethod": "Static",
+
+
+        "ipTags": []
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2017-03-15-preview",
+      "name": "[variables('logname')]",
+      "location": "[variables('location')]",
+
+      "properties": {
+        "sku": {
+          "name": "[parameters('sku')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('routeTables_Route_table_name')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "disableBgpRoutePropagation": true,
+        "routes": []
+      }
+    },
+    {
+      "type": "Microsoft.ContainerService/managedClusters",
+      "apiVersion": "2021-03-01",
+      "name": "[variables('managedClusters_aks_service_name')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AKS-Subnet')]"
+      ],
+      "sku": {
+        "name": "Basic",
+        "tier": "Free"
+      },
+      "properties": {
+        "kubernetesVersion": "1.19.11",
+        "dnsPrefix": "[concat(variables('managedClusters_aks_service_name'), '-dns')]",
+        "agentPoolProfiles": [
+          {
+            "name": "agentpool",
+            "count": 2,
+            "vmSize": "Standard_DS2_v2",
+            "osDiskSizeGB": 0,
+            "osDiskType": "Managed",
+            "kubeletDiskType": "OS",
+            "vnetSubnetID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AKS-Subnet')]",
+            "maxPods": 15,
+            "type": "VirtualMachineScaleSets",
+            "availabilityZones": [
+              "1"
+            ],
+            "orchestratorVersion": "1.19.11",
+            "nodeLabels": {},
+            "mode": "System",
+            "osType": "Linux",
+            "osSKU": "Ubuntu",
+            "enableFIPS": false
+          }
+        ],
+
+        "servicePrincipalProfile": {
+          "ClientId": "[parameters('servicePrincipalAppID')]",
+          "Secret": "[parameters('servicePrincipalSecret')]"
+        },
+        "addonProfiles": {
+          "azurepolicy": {
+            "enabled": false
+          },
+          "httpApplicationRouting": {
+            "enabled": false
+          }
+        },
+        "nodeResourceGroup": "[concat('MC_', resourceGroup().name,'_', variables('managedClusters_aks_service_name'), '_',variables('location'))]",
+        "enableRBAC": true,
+        "networkProfile": {
+          "networkPlugin": "azure",
+          "loadBalancerSku": "Standard",
+          "loadBalancerProfile": {
+            "managedOutboundIPs": {
+              "count": 1
+            }
+          },
+          "serviceCidr": "[variables('serviceCidr')]",
+          "dnsServiceIP": "[variables('dnsServiceIP')]",
+          "dockerBridgeCidr": "[variables('dockerBridgeCidr')]",
+          "outboundType": "loadBalancer"
+        },
+        "apiServerAccessProfile": {
+          "enablePrivateCluster": false
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('virtualNetworks_vNet_name')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/routeTables', variables('routeTables_Route_table_name'))]"
+      ],
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "172.16.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "AzureFireWallSubnet",
+            "properties": {
+              "addressPrefix": "172.16.0.0/24",
+              "serviceEndpoints": [],
+              "delegations": [],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+          },
+          {
+            "name": "AKS-Subnet",
+            "properties": {
+              "addressPrefix": "172.16.1.0/24",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTables_Route_table_name'))]"
+              },
+              "delegations": [],
+              "privateEndpointNetworkPolicies": "Enabled",
+              "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+          }
+        ],
+        "virtualNetworkPeerings": [],
+        "enableDdosProtection": false
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2020-11-01",
+      "name": "[concat(variables('virtualNetworks_vNet_name'), '/AzureFireWallSubnet')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworks_vNet_name'))]"
+      ],
+      "properties": {
+        "addressPrefix": "172.16.0.0/24",
+        "serviceEndpoints": [],
+        "delegations": [],
+        "privateEndpointNetworkPolicies": "Enabled",
+        "privateLinkServiceNetworkPolicies": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.ContainerService/managedClusters/agentPools",
+      "apiVersion": "2021-03-01",
+      "name": "[concat(variables('managedClusters_aks_service_name'), '/agentpool')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerService/managedClusters', variables('managedClusters_aks_service_name'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AKS-Subnet')]"
+      ],
+      "properties": {
+        "count": 2,
+        "vmSize": "Standard_DS2_v2",
+        "osDiskSizeGB": 0,
+        "osDiskType": "Managed",
+        "kubeletDiskType": "OS",
+        "vnetSubnetID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AKS-Subnet')]",
+        "maxPods": 15,
+        "type": "VirtualMachineScaleSets",
+        "availabilityZones": [
+          "1"
+        ],
+        "orchestratorVersion": "1.19.11",
+        "nodeLabels": {},
+        "mode": "System",
+        "osType": "Linux",
+        "osSKU": "Ubuntu",
+        "enableFIPS": false
+      }
+    },
+    {
+      "type": "Microsoft.Network/azureFirewalls",
+      "apiVersion": "2020-11-01",
+      "name": "[variables('azureFirewalls_Firewall_name')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddresses_AzureFirewallPIP_name'))]",
+        "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AzureFireWallSubnet')]"
+      ],
+      "properties": {
+        "sku": {
+          "name": "AZFW_VNet",
+          "tier": "Standard"
+        },
+        "threatIntelMode": "Alert",
+        "additionalProperties": {},
+        "ipConfigurations": [
+          {
+            "name": "[concat('Azure', variables('azureFirewalls_Firewall_name'), 'PIP')]",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddresses_AzureFirewallPIP_name'))]"
+              },
+              "subnet": {
+                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworks_vNet_name'), 'AzureFireWallSubnet')]"
+              }
+            }
+          }
+        ],
+        "networkRuleCollections": [],
+        "applicationRuleCollections": [],
+        "natRuleCollections": []
+
+      }
+    },
+    {
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "apiVersion": "2020-11-01",
+      "name": "[concat(variables('virtualNetworks_vNet_name'), '/AKS-Subnet')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworks_vNet_name'))]",
+        "[resourceId('Microsoft.Network/routeTables', variables('routeTables_Route_table_name'))]"
+      ],
+      "properties": {
+        "addressPrefix": "172.16.1.0/24",
+        "routeTable": {
+          "id": "[resourceId('Microsoft.Network/routeTables', variables('routeTables_Route_table_name'))]"
+        },
+        "delegations": [],
+        "privateEndpointNetworkPolicies": "Enabled",
+        "privateLinkServiceNetworkPolicies": "Enabled"
+      }
+    }
+  ]
+}
