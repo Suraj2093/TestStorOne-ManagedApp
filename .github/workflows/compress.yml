@@ -30,3 +30,4 @@ jobs:
         artifacts: "StorOne18.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
         commit: "ziper18"
+        tag: "ziper18"
