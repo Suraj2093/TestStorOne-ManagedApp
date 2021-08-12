@@ -20,14 +20,14 @@ jobs:
       uses: thedoctor0/zip-release@master
       with:
         type: 'zip'
-        filename: 'StorOne18.zip'
+        filename: 'StorOne19.zip'
         exclusions: '*.git* /*node_modules/* .editorconfig, README.md'
         
         
     - name: Upload Release
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "StorOne18.zip"
+        artifacts: "StorOne19.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
-        commit: "ziper18"
-        tag: "ziper18"
+        commit: "ziper19"
+        tag: "ziper19"
