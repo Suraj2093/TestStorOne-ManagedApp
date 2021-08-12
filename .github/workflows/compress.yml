@@ -35,3 +35,5 @@ jobs:
         tag: "zippper"
         replacesArtifacts: "true"
         allowUpdates: "true"
+        prerelease: "true"
+        omitPrereleaseDuringUpdate: "true"
