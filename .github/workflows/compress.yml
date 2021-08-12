@@ -29,5 +29,4 @@ jobs:
       with:
         artifacts: "StorOne19.zip"
         token: ${{ secrets.GITHUB_TOKEN }}
-        commit: "ziper19"
-        tag: "ziper19"
+        commit: '*'
