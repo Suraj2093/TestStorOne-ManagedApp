@@ -10,7 +10,7 @@ on:
     tags:
     - '*'
   pull_request:
-    branches: [ main ]
+    branches: '*'
 jobs:
   archive-build-artifacts:
     runs-on: ubuntu-latest
